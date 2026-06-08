@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Kwitansi Resmi 3-in-1 - PT SEJAHTERA DUA PUTRA</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 30px 20px;
+            color: #1a202c;
+        }
+        .container {
+            max-width: 790px;
+            margin: 0 auto;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        /* FORM INPUT PANEL */
+        .form-container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            border-top: 4px solid #0b1b3d;
+        }
+        h2.form-title {
+            margin-top: 0;
+            color: #0b1b3d;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
+        }
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 11px;
+            color: #4a5568;
+            text-transform: uppercase;
+        }
+        input, textarea {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: all 0.2s;
+            background-color: #f8fafc;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #0b1b3d;
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(11, 27, 61, 0.1);
+        }
+        textarea {
+            resize: vertical;
+            height: 50px;
+        }
+        .btn-group {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .btn-generate { background-color: #0b1b3d; color: white; }
+        .btn-generate:hover { background-color: #172a53; }
+        .btn-clear { border: 1px solid #cbd5e1; background: #fff; color: #1a202c; }
+        .btn-clear:hover { background-color: #f1f5f9; }
+        .btn-download-pdf { background-color: #242424; color: white; }
+        .btn-download-pdf:hover { background-color: #333333; }
+        .btn-download-png { background-color: #b48c36; color: white; }
+        .btn-download-png:hover { background-color: #967328; }
+
+        /* PREVIEW PANEL */
+        .preview-section {
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+        .action-preview {
+            margin-bottom: 15px;
+            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* DESAIN KWITANSI POTRAIT SLIM */
+        #kwitansi-box {
+            background: #ffffff;
+            position: relative;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 715px; 
+            height: 335px;    
+            margin: 0 auto;
+            padding: 15px 25px; 
+            border: 2px solid #0b1b3d;
+            outline: 1px solid #0b1b3d;
+            outline-offset: -6px;
+            font-family: 'Times New Roman', Times, serif;
+            overflow: hidden;
+        }
+
+        /* Watermark Latar Belakang */
+        .kw-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-10deg);
+            font-size: 38px;
+            font-weight: bold;
+            color: rgba(11, 27, 61, 0.03);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 1;
+            border: 5px double rgba(11, 27, 61, 0.03);
+            padding: 3px 15px;
+        }
+
+        .kw-layout {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        /* HEADER SECTION */
+        .kw-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2.5px double #0b1b3d;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+        }
+        .kw-brand-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .kw-logo-container {
+            width: 55px;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .kw-logo-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .kw-company h1 {
+            margin: 0;
+            font-size: 16px;
+            color: #0b1b3d;
+            font-weight: bold;
+        }
+        .kw-company .kbli-text {
+            margin: 2px 0 3px 0;
+            font-size: 9.5px;
+            color: #64748b;             
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;      
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .kw-company p {
+            margin: 0;
+            font-size: 9.5px;
+            color: #333;
+            line-height: 1.2;
+        }
+        .kw-company .contact-info {
+            font-size: 9.5px;
+            color: #555;
+        }
+        .kw-meta {
+            text-align: right;
+            min-width: 140px;
+        }
+        .kw-meta h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #0b1b3d;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+        }
+        .kw-number-badge {
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 2px;
+            color: #000;
+        }
+        .kw-number-badge span {
+            color: #b48c36;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+        }
+
+        /* BODY SECTION */
+        .kw-body {
+            display: flex;
+            flex-direction: column;
+            gap: 8px; 
+            margin-bottom: 10px;
+        }
+        .kw-row {
+            display: flex;
+            align-items: flex-start;
+        }
+        .kw-label {
+            width: 130px;
+            font-weight: bold;
+            font-style: italic;
+            color: #222;
+            font-size: 12px;
+            position: relative;
+        }
+        .kw-label::after {
+            content: ":";
+            position: absolute;
+            right: 10px;
+        }
+        .kw-value {
+            flex: 1;
+            color: #000;
+            font-size: 12.5px;
+            border-bottom: 1px dashed #777;
+            padding-bottom: 1px;
+            min-height: 16px;
+            line-height: 1.2;
+        }
+        .kw-value.box-terbilang {
+            font-style: italic;
+            font-weight: bold;
+            color: #0b1b3d;
+            background-color: rgba(252, 250, 222, 0.85);
+            border: 1px solid #cbd5e1;
+            padding: 3px 8px;
+        }
+
+        /* FOOTER SECTION */
+        .kw-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 5px;
+        }
+        
+        .kw-nominal-box {
+            border: 3px double #0b1b3d;
+            padding: 4px 15px;
+            background: #fff;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .kw-nominal-container {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #0b1b3d;
+            font-size: 16px;
+            font-weight: bold;
+            border-left: 3px solid #b48c36;
+            padding-left: 8px;
+        }
+        
+        .kw-signature-wrapper {
+            display: flex;
+            align-items: flex-end;
+            gap: 25px; 
+        }
+
+        .emeterai-placeholder-zone {
+            width: 65px;
+            height: 65px;
+            border: 1px dashed rgba(11, 27, 61, 0.2);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8.5px;
+            color: #888;
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 5px;
+            background: rgba(248, 250, 252, 0.5);
+        }
+
+        .kw-signature-area {
+            text-align: center;
+            width: 180px;
+            position: relative; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .kw-date {
+            font-size: 12px;
+            color: #000;
+            margin-bottom: 50px; 
+        }
+        
+        .kw-name {
+            font-weight: bold;
+            color: #0b1b3d;
+            font-size: 12.5px;
+            display: inline-block;
+            border-bottom: 1px solid #000;
+            padding-bottom: 1px;
+            text-transform: uppercase;
+        }
+        .kw-title {
+            font-size: 10px;
+            color: #444;
+            margin: 2px 0 0 0;
+        }
+
+        /* POSITIONING STEMPEL */
+        .stempel-vector-container {
+            position: absolute;
+            width: 90px;           
+            height: 90px;          
+            top: 5px;              
+            right: 15px;            
+            opacity: 0.90;
+            transform: rotate(-7deg);
+            pointer-events: none; 
+            z-index: 10;
+        }
+        .stempel-vector-container img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            mix-blend-mode: multiply;
+        }
+
+        /* POSITIONING TANDA TANGAN */
+        .ttd-digital-container {
+            position: absolute;
+            width: 95px;               
+            max-height: 55px;           
+            top: 22px;                  
+            right: 65px;                
+            z-index: 15;
+            text-align: center;
+            pointer-events: none;       
+        }
+        .ttd-digital-container img {
+            width: 100%;
+            height: auto;
+            max-height: 55px;
+            display: block;
+            object-fit: contain;
+            mix-blend-mode: multiply;    
+        }
+
+        @media print {
+            body { background-color: #fff; padding: 0; margin: 0; }
+            .form-container, .action-preview, .emeterai-placeholder-zone { display: none !important; }
+            .preview-section { padding: 0; box-shadow: none; }
+            #kwitansi-box { 
+                border: 2px solid #0b1b3d; 
+                margin-bottom: 15px; 
+                page-break-inside: avoid; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="form-container">
+        <h2 class="form-title">Kwitansi Digital Generator PT SEJAHTERA DUA PUTRA</h2>
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Nomor Kwitansi</label>
+                <input type="text" id="input-nomor" readonly style="font-weight: bold; color: #b48c36;">
+            </div>
+            <div class="form-group">
+                <label>Tanggal Transaksi</label>
+                <input type="date" id="input-tanggal">
+            </div>
+
+            <div class="form-group full-width">
+                <label>Sudah Terima Dari (Pembayar)</label>
+                <input type="text" id="input-penerima" placeholder="Contoh: MIN 5 Ponorogo">
+            </div>
+            <div class="form-group full-width">
+                <label>Jumlah Nominal (IDR)</label>
+                <input type="number" id="input-nominal" placeholder="Contoh: 1245600">
+            </div>
+            <div class="form-group full-width">
+                <label>Untuk Pembayaran (Keperluan)</label>
+                <textarea id="input-keperluan" placeholder="Contoh: Pembelian Kertas HVS A4..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Nama Penandatangan</label>
+                <input type="text" id="input-ttd-nama" value="SUPRIYANTO">
+            </div>
+            <div class="form-group">
+                <label>Jabatan</label>
+                <input type="text" id="input-ttd-jabatan" value="Direktur">
+            </div>
+            
+            <div class="form-group full-width" style="flex-direction: column; gap: 10px; margin-top: 5px; border-top: 1px dashed #cbd5e1; padding-top: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="input-pakai-stempel" style="width: auto; cursor: pointer;" onchange="toggleStempelView()">
+                    <label for="input-pakai-stempel" style="margin-bottom: 0; cursor: pointer; text-transform: none; font-size: 13px; color: #0b1b3d; font-weight: bold;">
+                        Tampilkan Stempel Perusahaan Ungu
+                    </label>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="input-pakai-ttd" style="width: auto; cursor: pointer;" onchange="toggleTtdView()">
+                    <label for="input-pakai-ttd" style="margin-bottom: 0; cursor: pointer; text-transform: none; font-size: 13px; color: #1a1a1a; font-weight: bold;">
+                        Tampilkan Gambar Tanda Tangan Aktif
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn-generate" onclick="generateKwitansi()">Generate Preview</button>
+            <button class="btn-clear" onclick="clearForm()">Kosongkan Form</button>
+        </div>
+    </div>
+
+    <div class="preview-section" id="preview-section" style="display: none;">
+        <div class="action-preview">
+            <button class="btn-download-pdf" onclick="downloadPDF()">Simpan ke PDF</button>
+            <button class="btn-download-png" onclick="downloadPNG()">Simpan ke PNG</button>
+            <button class="btn-generate" onclick="window.print()" style="background-color: #059669;">Cetak Langsung (A4)</button>
+        </div>
+        
+        <div id="kwitansi-box">
+            <div class="kw-watermark">PT SEJAHTERA DUA PUTRA</div>
+            
+            <div class="kw-layout">
+                <div class="kw-header">
+                    <div class="kw-brand-container">
+                        <div class="kw-logo-container" id="kw-logo-block">
+                            <img id="img-logo-render" src="logo-sedupu.png" alt="Logo Perusahaan">
+                        </div>
+                        
+                        <div class="kw-company">
+                            <h1>PT SEJAHTERA DUA PUTRA</h1>
+                            <div class="kbli-text">General Supplier & Trading</div>
+                            <p>Jl. Mlarak Pulung, Suren1 RT02 RW02, Mlarak Ponorogo</p>
+                            <div class="contact-info">Email: sales@sejahteraduaputra.id</div>
+                        </div>
+                    </div>
+                    <div class="kw-meta">
+                        <h2>KWITANSI</h2>
+                        <div class="kw-number-badge">No: <span id="kw-nomor">SDP-00034</span></div>
+                    </div>
+                </div>
+                
+                <div class="kw-body">
+                    <div class="kw-row">
+                        <div class="kw-label">Sudah Terima Dari</div>
+                        <div class="kw-value" id="kw-penerima">-</div>
+                    </div>
+                    <div class="kw-row">
+                        <div class="kw-label">Banyaknya Uang</div>
+                        <div class="kw-value box-terbilang" id="kw-terbilang">-</div>
+                    </div>
+                    <div class="kw-row">
+                        <div class="kw-label">Untuk Pembayaran</div>
+                        <div class="kw-value" id="kw-keperluan">-</div>
+                    </div>
+                </div>
+                
+                <div class="kw-footer">
+                    <div class="kw-nominal-box">
+                        <div class="kw-nominal-container" id="kw-nominal">Rp 0,-</div>
+                    </div>
+                    
+                    <div class="kw-signature-wrapper">
+                        <div class="emeterai-placeholder-zone">Space Area<br>e-Meterai</div>
+                        
+                        <div class="kw-signature-area">
+                            <div class="kw-date" id="kw-tanggal">Ponorogo, ...</div>
+                            
+                            <div id="kw-stempel-digital" class="stempel-vector-container" style="display: none;">
+                                <img src="stampel.png" alt="Stempel Resmi">
+                            </div>
+
+                            <div id="kw-ttd-digital" class="ttd-digital-container" style="display: none;">
+                                <img id="img-ttd-render" src="ttd-supriyanto.png" alt="Tanda Tangan">
+                            </div>
+
+                            <div class="kw-name" id="kw-ttd-nama">SUPRIYANTO</div>
+                            <p class="kw-title" id="kw-ttd-jabatan">Direktur</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentCounter = localStorage.getItem('sdp_kwitansi_num') ? parseInt(localStorage.getItem('sdp_kwitansi_num')) : 34;
+
+    window.onload = function() {
+        refreshNomorKwitansi();
+        document.getElementById('input-tanggal').valueAsDate = new Date();
+    }
+
+    function refreshNomorKwitansi() {
+        let padNumber = String(currentCounter).padStart(5, '0');
+        document.getElementById('input-nomor').value = "SDP-" + padNumber;
+    }
+
+    function toggleTtdView() {
+        const checkboxTtd = document.getElementById('input-pakai-ttd');
+        const elementTtd = document.getElementById('kw-ttd-digital');
+        if (checkboxTtd && elementTtd) {
+            elementTtd.style.display = checkboxTtd.checked ? 'block' : 'none';
+        }
+    }
+
+    function toggleStempelView() {
+        const checkboxStempel = document.getElementById('input-pakai-stempel');
+        const elementStempel = document.getElementById('kw-stempel-digital');
+        if (checkboxStempel && elementStempel) {
+            elementStempel.style.display = checkboxStempel.checked ? 'block' : 'none';
+        }
+    }
+
+    function hierarchyKata(n) {
+        const angkaTeks = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
+        if (n < 12) return " " + angkaTeks[n];
+        if (n < 20) return hierarchyKata(n - 10) + " Belas";
+        if (n < 100) return hierarchyKata(Math.floor(n / 10)) + " Puluh" + hierarchyKata(n % 10);
+        if (n < 200) return " Seratus" + hierarchyKata(n - 100);
+        if (n < 1000) return hierarchyKata(Math.floor(n / 100)) + " Ratus" + hierarchyKata(n % 100);
+        if (n < 2000) return " Seribu" + hierarchyKata(n - 1000);
+        if (n < 1000000) return hierarchyKata(Math.floor(n / 1000)) + " Ribu" + hierarchyKata(n % 1000);
+        if (n < 1000000000) return hierarchyKata(Math.floor(n / 1000000)) + " Juta" + hierarchyKata(n % 1000000);
+        return "";
+    }
+
+    function generateTerbilang(nominal) {
+        if(!nominal || nominal == 0) return "Nol Rupiah";
+        return (hierarchyKata(parseInt(nominal)) + " Rupiah").trim().replace(/\s+/g, ' ');
+    }
+
+    function formatMataUang(nominal) {
+        let reverse = nominal.toString().split('').reverse().join(''),
+        ribuan = reverse.match(/\d{1,3}/g);
+        ribuan = ribuan.join('.').split('').reverse().join('');
+        return "Rp " + ribuan + ",-";
+    }
+
+    function formatTanggalPonorogo(dateStr) {
+        if(!dateStr) return "";
+        const listBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        let d = new Date(dateStr);
+        return `Ponorogo, ${d.getDate()} ${listBulan[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function generateKwitansi() {
+        document.getElementById('kw-nomor').innerText = document.getElementById('input-nomor').value;
+        document.getElementById('kw-penerima').innerText = document.getElementById('input-penerima').value || "-";
+        
+        let nominal = document.getElementById('input-nominal').value || 0;
+        document.getElementById('kw-terbilang').innerText = generateTerbilang(nominal);
+        document.getElementById('kw-keperluan').innerText = document.getElementById('input-keperluan').value || "-";
+        document.getElementById('kw-nominal').innerText = formatMataUang(nominal);
+        document.getElementById('kw-tanggal').innerText = formatTanggalPonorogo(document.getElementById('input-tanggal').value);
+        
+        document.getElementById('kw-ttd-nama').innerText = document.getElementById('input-ttd-nama').value || "SUPRIYANTO";
+        document.getElementById('kw-ttd-jabatan').innerText = document.getElementById('input-ttd-jabatan').value || "Direktur";
+
+        toggleStempelView();
+        toggleTtdView();
+
+        document.getElementById('preview-section').style.display = 'block';
+        document.getElementById('preview-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function clearForm() {
+        document.getElementById('input-penerima').value = "";
+        document.getElementById('input-nominal').value = "";
+        document.getElementById('input-keperluan').value = "";
+        document.getElementById('input-pakai-stempel').checked = false;
+        document.getElementById('input-pakai-ttd').checked = false;
+        document.getElementById('kw-stempel-digital').style.display = 'none';
+        document.getElementById('kw-ttd-digital').style.display = 'none';
+        
+        document.getElementById('input-tanggal').valueAsDate = new Date();
+        document.getElementById('preview-section').style.display = 'none';
+    }
+
+    function incrementCounter() {
+        currentCounter++;
+        localStorage.setItem('sdp_kwitansi_num', currentCounter);
+        refreshNomorKwitansi();
+    }
+
+    function downloadPDF() {
+        const element = document.getElementById('kwitansi-box');
+        const nomor = document.getElementById('kw-nomor').innerText;
+        
+        const opt = {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            width: element.offsetWidth,
+            height: element.offsetHeight
+        };
+        
+        html2canvas(element, opt).then(canvas => {
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            const { jsPDF } = window.jspdf;
+            
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+            
+            const imgWidth = 190; 
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            pdf.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+            pdf.save(`Kwitansi_${nomor}.pdf`);
+            
+            alert("Kwitansi PDF Berhasil Diunduh!");
+            incrementCounter();
+        }).catch(err => {
+            alert("Gagal membuat PDF, silakan coba tombol Cetak Langsung.");
+            console.error(err);
+        });
+    }
+
+    function downloadPNG() {
+        const element = document.getElementById('kwitansi-box');
+        const nomor = document.getElementById('kw-nomor').innerText;
+        
+        const opt = {
+            scale: 2.5,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            width: element.offsetWidth,
+            height: element.offsetHeight
+        };
+        
+        html2canvas(element, opt).then(canvas => {
+            const downloadLink = document.createElement('a');
+            downloadLink.download = `Kwitansi_${nomor}.png`;
+            downloadLink.href = canvas.toDataURL('image/png');
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            alert("Kwitansi PNG Berhasil Diunduh!");
+            incrementCounter();
+        }).catch(err => {
+            alert("Gagal mengunduh gambar.");
+            console.error(err);
+        });
+    }
+</script>
+
+</body>
+</html>
